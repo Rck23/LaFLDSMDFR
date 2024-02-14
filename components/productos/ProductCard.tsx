@@ -6,7 +6,8 @@ const ProductCard = ({ product }) => {
 
   const [displayImage, setDisplayImage ] = useState( product.imagenes[0].url);
   return (
-    <div className="rounded-md overflow-hidden fade-in bg-gray-100">
+    <div className="rounded-md overflow-hidden fade-in bg-gray-100 ">
+      
       <Link href={`/product/${product.id}`}>
         <Image
           className="w-full object-cover rounded"
@@ -19,6 +20,13 @@ const ProductCard = ({ product }) => {
           // onMouseLeave={ () => setDisplayImage(product.imagenes[0].url)}
         />
       </Link>
+      <div className="p-4 flex flex-col">
+        {/* ... otros elementos ... */}
+        {product.estatus === 'NoDisponible' && (
+          <span className="text-red-500">No Disponible</span>
+        )}
+        
+      </div>
       <div className="p-4 flex flex-col " >
         <Link className="hover:text-blue-700" href={`products/${product.id}`}>
           {product.nombre}

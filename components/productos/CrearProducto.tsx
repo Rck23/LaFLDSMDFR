@@ -10,8 +10,27 @@ export const CrearProducto = () => {
   // Estado para controlar la visibilidad de la alerta
   const [showAlert, setShowAlert] = useState(false);
 
+  const [products, setProducts] = useState([]);
+
+
   // Estado para controlar si el modal está cerrándose
   const [isClosing, setIsClosing] = useState(false);
+
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await api.get("/Categorias/GetCategorias");
+
+        setCategories(response.data);
+      } catch (error) {
+        console.error("Error al cargar las categories:", error);
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   // Función para manejar el envío del formulario
   const handleSubmit = async (event) => {
@@ -22,11 +41,16 @@ export const CrearProducto = () => {
 
     try {
       // Enviando los datos al endpoint
-      const response = await api.post("/Producto/crear", formData, {
+       await api.post("/Producto/crear", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
+
+      const response = await api.get("/Producto/obtenerProductos");
+
+
+      setProducts(response.data);
 
       // Marcar que el modal está cerrándose
       setIsClosing(true);
@@ -54,11 +78,19 @@ export const CrearProducto = () => {
     return () => clearTimeout(timer);
   }, [isClosing, showAlert]);
 
+  const showModal = () => {
+    document.getElementById("crearProduct").showModal();
+  };
+
+  const closeModal = () => {
+    document.getElementById("crearProduct").close();
+  };
+
   return (
     <>
       <button
         className="btn btn-outline btn-md sm:btn-sm md:btn-md lg:btn-lg bg-white text-black mt-10"
-        onClick={() => document.getElementById("crearProduct").showModal()}
+        onClick={showModal}
       >
         Crear producto
       </button>
@@ -68,16 +100,16 @@ export const CrearProducto = () => {
           onSubmit={handleSubmit}
           encType="multipart/form-data"
         >
-          <div className="modal-box bg-white text-black">
-            <h3 className="font-bold text-lg">Crear Producto</h3>
-            <p className="py-4">
+          <div className="modal-box bg-white text-black p-8">
+            <h3 className="font-bold text-lg mb-4">Crear Producto</h3>
+            <p className="mb-4">
               Complete el formulario para crear un nuevo producto.
             </p>
             {/* Campos del formulario */}
-            <div>
+            <div className="mb-4">
               <label
                 htmlFor="nombre"
-                className="block text-sm font-medium text-black"
+                className="block text-sm font-medium text-black mb-1"
               >
                 Nombre:
               </label>
@@ -85,15 +117,30 @@ export const CrearProducto = () => {
                 type="text"
                 id="nombre"
                 name="nombre"
-                className="mt-1  input-bordered  block w-full rounded-md border-black bg-white shadow-sm "
+                className="input-bordered w-full rounded-md border border-black bg-white shadow-sm"
                 required
               />
             </div>
 
-            <div>
+            <div className="mb-4">
+              <label
+                htmlFor="descripcion"
+                className="block text-sm font-medium text-black mb-1"
+              >
+                Descripción:
+              </label>
+              <textarea
+                id="descripcion"
+                name="descripcion"
+                className="input-bordered w-full rounded-md border border-black bg-white shadow-sm"
+                required
+              />
+            </div>
+
+            <div className="mb-4">
               <label
                 htmlFor="precio"
-                className="block text-sm font-medium text-black"
+                className="block text-sm font-medium text-black mb-1"
               >
                 Precio:
               </label>
@@ -103,30 +150,15 @@ export const CrearProducto = () => {
                 name="precio"
                 step="0.01"
                 min="0"
-                className="mt-1 block w-full rounded-md border-black bg-white shadow-sm "
+                className="input-bordered w-full rounded-md border border-black bg-white shadow-sm"
                 required
               />
             </div>
 
-            <div>
-              <label
-                htmlFor="descripcion"
-                className="block text-sm font-medium text-black"
-              >
-                Descripción:
-              </label>
-              <textarea
-                id="descripcion"
-                name="descripcion"
-                className="mt-1 block w-full rounded-md border-black bg-white shadow-sm "
-                required
-              ></textarea>
-            </div>
-
-            <div>
+            <div className="mb-4">
               <label
                 htmlFor="stock"
-                className="block text-sm font-medium text-black"
+                className="block text-sm font-medium text-black mb-1"
               >
                 Stock:
               </label>
@@ -135,25 +167,29 @@ export const CrearProducto = () => {
                 id="stock"
                 name="stock"
                 min="0"
-                className="mt-1 block w-full rounded-md border-black bg-white shadow-sm "
+                className="input-bordered w-full rounded-md border border-black bg-white shadow-sm"
                 required
               />
             </div>
 
-            <div>
+            <div className="mb-4">
               <label
                 htmlFor="categoriaId"
-                className="block text-sm font-medium text-black"
+                className="block text-sm font-medium text-black mb-1"
               >
-                Categoría ID:
+                Categoria:
               </label>
-              <input
-                type="number"
-                id="categoriaId"
-                name="categoriaId"
-                className="mt-1 block w-full rounded-md border-black bg-white shadow-sm "
-                required
-              />
+              <select className="input-bordered w-full rounded-md border border-black bg-white shadow-sm" id="categoriaId"
+                name="categoriaId">
+                <option value="" disabled selected>
+                  Selecciones categoria
+                </option>
+                {categories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.nombre}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div>
@@ -169,49 +205,19 @@ export const CrearProducto = () => {
                 name="fotos"
                 accept="image/*"
                 multiple
-                className="mt-1 block w-full rounded-md border-black bg-white shadow-sm"
+                className="input-bordered w-full rounded-md border border-black bg-white shadow-sm"
                 required
               />
             </div>
 
-            <div>
-              <label
-                htmlFor="nombrePersonalizado"
-                className="block text-sm font-medium text-black"
-              >
-                Nombre Personalizado:
-              </label>
-              <input
-                type="text"
-                id="nombrePersonalizado"
-                name="nombrePersonalizado"
-                className="mt-1 block w-full rounded-md border-black bg-white shadow-sm "
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="colorProductoId"
-                className="block text-sm font-medium text-black"
-              >
-                Color del Producto ID:
-              </label>
-              <input
-                type="number"
-                id="colorProductoId"
-                name="colorProductoId"
-                className="mt-1 block w-full rounded-md border-black bg-white shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-              />
-            </div>
-
             <div className="modal-action">
-              <button type="submit" className="btn mr-4 btn-success text-white">
+              <button type="submit" className="btn  w-1/2 btn-success text-white">
                 Crear Producto
               </button>
               <button
                 type="button"
-                className="btn btn-error text-white"
-                onClick={() => document.getElementById("crearProduct").close()}
+                className="btn btn-error text-white w-1/2"
+                onClick={closeModal}
               >
                 Cancelar
               </button>
@@ -222,7 +228,7 @@ export const CrearProducto = () => {
 
       {/* Alertas de DaisyUI */}
       {showAlert && (
-        <div className="fixed inset-x-0 top-10 flex items-center justify-center z-50">
+        <div className="fixed inset-x-0 top-50 flex items-center justify-center z-50">
           <div className="bg-green-600 text-white rounded shadow-lg p-4">
             <span className="inline-block align-middle mr-8">
               <svg
